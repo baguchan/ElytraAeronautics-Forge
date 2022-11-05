@@ -21,7 +21,7 @@ public abstract class LivingEntityMixin extends Entity {
         super(entityType, world);
     }
 
-    @ModifyArg(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", ordinal = 6))
+    @ModifyArg(method = "Lnet/minecraft/world/entity/LivingEntity;travel(Lnet/minecraft/world/phys/Vec3;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", ordinal = 6))
     private Vec3 modifyVelocity(Vec3 vec3) {
         // ? Re-read config file if data has been modified.
 
