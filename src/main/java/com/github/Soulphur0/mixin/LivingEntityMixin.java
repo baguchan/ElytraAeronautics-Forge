@@ -1,15 +1,13 @@
 package com.github.Soulphur0.mixin;
 
-import com.github.Soulphur0.ElytraAeronautics;
-import com.github.Soulphur0.config.ConfigFileReader;
 import com.github.Soulphur0.config.EanConfigFile;
 import com.github.Soulphur0.utility.EanMath;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -18,78 +16,73 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 public abstract class LivingEntityMixin extends Entity {
 
     // * Config file data
-    EanConfigFile configFile = ConfigFileReader.getConfigFile();
 
-    protected LivingEntityMixin(EntityType<? extends LivingEntity> entityType, World world){
-        super(entityType,world);
+    protected LivingEntityMixin(EntityType<? extends LivingEntity> entityType, Level world) {
+        super(entityType, world);
     }
 
-    @ModifyArg(method = "travel(Lnet/minecraft/util/math/Vec3d;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;setVelocity(Lnet/minecraft/util/math/Vec3d;)V", ordinal = 6))
-    private Vec3d modifyVelocity(Vec3d vector){
+    @ModifyArg(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", ordinal = 6))
+    private Vec3 modifyVelocity(Vec3 vec3) {
         // ? Re-read config file if data has been modified.
-        if (ElytraAeronautics.readConfigFileCue_LivingEntityMixin){
-            configFile = ConfigFileReader.getConfigFile();
-            ElytraAeronautics.readConfigFileCue_LivingEntityMixin = false;
-        }
 
         // ? Gradual pitch realignment
-        if(configFile.isSneakRealignsPitch() && this.isSneaking()){
-            float pitch = this.getPitch();
+        if (EanConfigFile.isSneakRealignsPitch() && this.isShiftKeyDown()) {
+            float pitch = this.getXRot();
 
-            float alignmentAngle = configFile.getRealignmentAngle();
-            float alignementRate = configFile.getRealignmentRate();
+            float alignmentAngle = EanConfigFile.getRealignmentAngle();
+            float alignementRate = EanConfigFile.getRealignmentRate();
 
-            if (Math.abs(pitch) <= alignementRate*2){
-                this.setPitch(alignmentAngle);
+            if (Math.abs(pitch) <= alignementRate * 2) {
+                this.setXRot(alignmentAngle);
             } else {
-                if (pitch > alignmentAngle){
-                    this.setPitch(pitch-alignementRate);
+                if (pitch > alignmentAngle) {
+                    this.setXRot(pitch - alignementRate);
                 } else {
-                    this.setPitch(pitch+alignementRate);
+                    this.setXRot(pitch + alignementRate);
                 }
             }
         }
 
         // ? Get player altitude
-        Vec3d positionVector = super.getPos();
+        Vec3 positionVector = super.position();
         double playerAltitude = positionVector.y;
 
         // ? Calculate player speed based on altitude and return
-        Vec3d movementVector;
+        Vec3 movementVector;
         movementVector = calcMovementVector(playerAltitude);
         return movementVector.multiply(0.99f, 0.98f, 0.99f);
     }
 
-    private Vec3d calcMovementVector(double playerAltitude){
+    private Vec3 calcMovementVector(double playerAltitude) {
         double speedConstant = 0.08;
         double aux;
         double aux2;
 
         // * Calculate additional speed based on player altitude.
-        double minSpeed = configFile.getMinSpeed();
-        double maxSpeed = configFile.getMaxSpeed();
-        double curveStart = configFile.getCurveStart();
-        double curveEnd = configFile.getCurveEnd();
+        double minSpeed = EanConfigFile.getMinSpeed();
+        double maxSpeed = EanConfigFile.getMaxSpeed();
+        double curveStart = EanConfigFile.getCurveStart();
+        double curveEnd = EanConfigFile.getCurveEnd();
         double modHSpeed;
 
         // * Clamp the calculated modified speed to not be below or over the speed range.
-        modHSpeed = (configFile.isAltitudeDeterminesSpeed()) ? MathHelper.clamp(EanMath.getLinealValue(curveStart,minSpeed,curveEnd,maxSpeed,playerAltitude), minSpeed, maxSpeed) : minSpeed;
+        modHSpeed = (EanConfigFile.isAltitudeDeterminesSpeed()) ? Mth.clamp(EanMath.getLinealValue(curveStart, minSpeed, curveEnd, maxSpeed, playerAltitude), minSpeed, maxSpeed) : minSpeed;
 
-        Vec3d movementVector = this.getVelocity();
+        Vec3 movementVector = this.getDeltaMovement();
         if (movementVector.y > -0.5) {
             this.fallDistance = 1.0f;
         }
 
-        Vec3d rotationVector = this.getRotationVector();
-        float pitchInRadians = this.getPitch() * ((float)Math.PI / 180);
+        Vec3 rotationVector = this.getLookAngle();
+        float pitchInRadians = this.getXRot() * ((float) Math.PI / 180);
         double angleToTheGround = Math.sqrt(rotationVector.x * rotationVector.x + rotationVector.z * rotationVector.z);
-        double speed = movementVector.horizontalLength();
+        double speed = movementVector.horizontalDistance();
         double rotationVectorLength = rotationVector.length();
 
-        float fallSpeedMultiplier = MathHelper.cos(pitchInRadians);
-        fallSpeedMultiplier = (float)((double)fallSpeedMultiplier * ((double)fallSpeedMultiplier * Math.min(1.0, rotationVectorLength / 0.4)));
+        float fallSpeedMultiplier = Mth.cos(pitchInRadians);
+        fallSpeedMultiplier = (float) ((double) fallSpeedMultiplier * ((double) fallSpeedMultiplier * Math.min(1.0, rotationVectorLength / 0.4)));
 
-        movementVector = this.getVelocity().add(0.0, speedConstant * (-1.0 + (double)fallSpeedMultiplier * 0.75), 0.0); // ! Set Y=0.0 to turn off downwards speed.
+        movementVector = this.getDeltaMovement().add(0.0, speedConstant * (-1.0 + (double) fallSpeedMultiplier * 0.75), 0.0); // ! Set Y=0.0 to turn off downwards speed.
 
         // * Looking under the horizon
         // Horizontal movement uses aux plus the (+1 m/s) constant multiplied by the speed set by the player minus default speed.
@@ -105,7 +98,7 @@ public abstract class LivingEntityMixin extends Entity {
         // * Looking over the horizon
         // Vertical speed decreases with the player realtime speed.
         if (pitchInRadians < 0.0f && angleToTheGround > 0.0) {
-            aux = speed * (double)(-MathHelper.sin(pitchInRadians)) * 0.04;
+            aux = speed * (double) (-Mth.sin(pitchInRadians)) * 0.04;
 
             movementVector = movementVector.add(-rotationVector.x * aux / angleToTheGround, Math.min((aux * 3.2), 0.1D), -rotationVector.z * aux / angleToTheGround);
         }

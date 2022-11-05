@@ -6,8 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "LivingEntityMixin",
-    "WorldRendererMixin"
+    "LevelRendererMixin",
+    "LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

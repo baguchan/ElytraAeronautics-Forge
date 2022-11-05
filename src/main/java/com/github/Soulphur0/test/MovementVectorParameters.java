@@ -1,34 +1,34 @@
 package com.github.Soulphur0.test;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * @see <a href="https://docs.google.com/spreadsheets/d/1M9V4Rn18zhw8LtKhFGyUJxN8YXPKszAVx1BnVu2qptQ/edit#gid=0">fallSpeedMultiplier quadratic increase with pitch.</a>
  * */
 public class MovementVectorParameters {
 
-    static public Vec3d calcMovementVector(LivingEntity player, double playerAltitude){
+    static public Vec3 calcMovementVector(LivingEntity player, double playerAltitude) {
         // ? The movement speed constant.
         double speedConstant = 0.08;
 
         // ? Aux variable used in movement vector calculations
         double aux;
-        
-        // ? Player's movement vector in Vec3d form. (AKA velocity vector) 
-        Vec3d movementVector = player.getVelocity();
+
+        // ? Player's movement vector in Vec3 form. (AKA velocity vector)
+        Vec3 movementVector = player.getDeltaMovement();
 
         // ? Reset fall distance if flight speed is upwards.
         if (movementVector.y > -0.5) {
             player.fallDistance = 1.0f;
         }
-        
+
         // ? Player's rotation vector.
-        Vec3d rotationVector = player.getRotationVector();
+        Vec3 rotationVector = player.getLookAngle();
 
         // ? Player's pitch in radians.
-        float pitchInRadians = player.getPitch() * ((float)Math.PI / 180);
+        float pitchInRadians = player.getXRot() * ((float) Math.PI / 180);
         // vAngle = 0   ; pitch = 0.008893194; pitchInRadians = 0.0001
         // vAngle = 90  ; pitch = 90         ; pitchInRadians = 1.57
         // vAngle = -90 ; pitch = -90        ; pitchInRadians = -1.57
@@ -42,7 +42,7 @@ public class MovementVectorParameters {
         /**/
         
         // ? Player flight speed.
-        double speed = movementVector.horizontalLength();
+        double speed = movementVector.horizontalDistance();
         // pitch = 0.0  ; var = 1.51
         // pitch = 45.0 ; var = 3.22
         /**/
@@ -55,7 +55,7 @@ public class MovementVectorParameters {
         /**/
 
         // ? Similar to angleToTheGround. Cosine of the pitch in radians (0-1). The greater the pitch angle the higher this value.
-        float fallSpeedMultiplier = MathHelper.cos(pitchInRadians);
+        float fallSpeedMultiplier = Mth.cos(pitchInRadians);
         // pitch = 0  ; pitchInRadians = 0.000 ; fallSpeedMultiplier = 1
         // pitch = 45 ; pitchInRadians = 0.785 ; fallSpeedMultiplier = 0.5
         // pitch = 90 ; pitchInRadians = 1.570 ; fallSpeedMultiplier = 0
@@ -66,7 +66,7 @@ public class MovementVectorParameters {
         // See javadoc to see curve.
 
         // * Adds downwards speed to the movement vector based on the pitch of the player.
-        movementVector = player.getVelocity().add(0.0, speedConstant * (-1.0 + (double)fallSpeedMultiplier * 0.75), 0.0);
+        movementVector = player.getDeltaMovement().add(0.0, speedConstant * (-1.0 + (double) fallSpeedMultiplier * 0.75), 0.0);
         //  At max pitch (90degrees) added downwards speed is (-1.0 + 0.0) = -1.0 (maximum down speed).
         //  At min pitch (0 degrees) added downwards speed is (-1.0 + (1.0 * 0.75)) = -0.25 (minimum down speed).
 
@@ -92,7 +92,7 @@ public class MovementVectorParameters {
         // *    (Pitch is negative) -> [Speed should decrease]
         // *    Also applies gravity while fliying.
         if (pitchInRadians < 0.0f && angleToTheGround > 0.0) {
-            aux = speed * (double)(-MathHelper.sin(pitchInRadians)) * 0.04;
+            aux = speed * (double) (-Mth.sin(pitchInRadians)) * 0.04;
 
             // Aux is then added to the movement vector, which subtracts speed in each axis depending on how up the player looks (angle to the ground divider is 1 if looking straight up).
             movementVector = movementVector.add(-rotationVector.x * aux / angleToTheGround, aux * 3.2, -rotationVector.z * aux / angleToTheGround);

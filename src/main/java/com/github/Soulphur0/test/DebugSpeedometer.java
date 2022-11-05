@@ -1,30 +1,30 @@
 package com.github.Soulphur0.test;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
 public class DebugSpeedometer {
 
-    static Vec3d lastPos = Vec3d.ZERO;
+    static Vec3 lastPos = Vec3.ZERO;
 
-    static public void displayDebugSpeedometer(Vec3d pos, World world){
+    static public void displayDebugSpeedometer(Vec3 pos, Level world) {
         // Calculate speed.
         String message = "SPEED = " + (
                 Math.round(
                         Math.sqrt(
-                                Math.pow(pos.x-lastPos.x,2) +
-                                        Math.pow(pos.y-lastPos.y,2) +
-                                        Math.pow(pos.z-lastPos.z,2))
-                                * 20 /* 20 ticks every second */ * 100.0)) /100.0 + "m/s";
+                                Math.pow(pos.x - lastPos.x, 2) +
+                                        Math.pow(pos.y - lastPos.y, 2) +
+                                        Math.pow(pos.z - lastPos.z, 2))
+                                * 20 /* 20 ticks every second */ * 100.0)) / 100.0 + "m/s";
         lastPos = pos;
         // Send speed info.
-        if (world.isClient()){
-            List<? extends PlayerEntity> players = world.getPlayers();
-            players.forEach(player -> player.sendMessage(Text.of(message), true));
+        if (world.isClientSide()) {
+            List<? extends Player> players = world.players();
+            players.forEach(player -> player.displayClientMessage(Component.translatable(message), true));
         }
     }
 

@@ -2,10 +2,13 @@
 
 ## What is This mod?
 
-This mod is ElytraAeronautics's forge port
+Port of the Fabric mod Elytra Aerounautics by Soulphur
+
 If you want see original mod check this!
 
 https://github.com/Soulphur0/ElytraAeronautics
+
+https://www.curseforge.com/minecraft/mc-mods/elytra-aeronautics
 
 ## Credit
 
