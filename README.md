@@ -4,7 +4,9 @@
 
 Port of the Fabric mod Elytra Aerounautics by Soulphur
 
-If you want see original mod check this!
+https://www.curseforge.com/minecraft/mc-mods/elytra-aeronautics-forge
+
+If you want see original mod check below!
 
 https://github.com/Soulphur0/ElytraAeronautics
 
