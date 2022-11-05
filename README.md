@@ -7,6 +7,6 @@ If you want see original mod check this!
 
 https://github.com/Soulphur0/ElytraAeronautics
 
-##Credit
+## Credit
 
 Soulphur0 - Original Mod author
