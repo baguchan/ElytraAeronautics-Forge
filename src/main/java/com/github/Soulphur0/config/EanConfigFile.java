@@ -2,13 +2,14 @@ package com.github.Soulphur0.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
-
+@Mod.EventBusSubscriber(modid = "elytra_aeronautics", bus = Mod.EventBusSubscriber.Bus.MOD)
 public class EanConfigFile {
     public static final Client CLIENT;
     public static final ForgeConfigSpec CLIENT_SPEC;
@@ -79,10 +80,6 @@ public class EanConfigFile {
         public final ForgeConfigSpec.BooleanValue useSmoothLODs;
 
         public Client(ForgeConfigSpec.Builder builder) {
-            defaultCloudList.add(new CloudLayer(250.0F, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
-            defaultCloudList.add(new CloudLayer(1000.0F, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
-
-
             layerAmount = builder
                     .comment("layerAmount")
                     .defineInRange("layerAmount", 2, 0, 10);
@@ -127,7 +124,7 @@ public class EanConfigFile {
         return Client.defaultCloudList;
     }
 
-    public float getLayerDistance() {
+    public static float getLayerDistance() {
         return CLIENT.layerDistance.get();
     }
 
@@ -186,7 +183,15 @@ public class EanConfigFile {
     // ? Preset setup method
 
     @SubscribeEvent
-    public void defaultPreset(ModConfigEvent.Loading event) {
+    public static void defaultPreset(ModConfigEvent.Loading event) {
+        EanConfigFile.getCloudLayerList().clear();
+
+        if (EanConfigFile.getLayerAmount() > 0) {
+            for (int i = 0; i < EanConfigFile.getLayerAmount(); i++) {
+                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getLayerDistance() * (i + 1), CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
+            }
+        }
+
         for (CloudLayer layer : getCloudLayerList()) {
             layer.setCloudType(getCloudType());
             layer.setRenderMode(getRenderMode());
@@ -196,7 +201,15 @@ public class EanConfigFile {
 
 
     @SubscribeEvent
-    public void defaultPreset(ModConfigEvent.Reloading event) {
+    public static void defaultPreset(ModConfigEvent.Reloading event) {
+        EanConfigFile.getCloudLayerList().clear();
+
+        if (EanConfigFile.getLayerAmount() > 0) {
+            for (int i = 0; i < EanConfigFile.getLayerAmount(); i++) {
+                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getLayerDistance() * i, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
+            }
+        }
+
         for (CloudLayer layer : getCloudLayerList()) {
             layer.setCloudType(getCloudType());
             layer.setRenderMode(getRenderMode());
