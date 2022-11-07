@@ -188,7 +188,7 @@ public class EanConfigFile {
 
         if (EanConfigFile.getLayerAmount() > 0) {
             for (int i = 0; i < EanConfigFile.getLayerAmount(); i++) {
-                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getLayerDistance() * (i + 1), CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
+                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getStackingAltitude() + EanConfigFile.getLayerDistance() * i, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
             }
         }
 
