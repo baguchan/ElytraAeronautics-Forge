@@ -19,7 +19,7 @@ mixin {
     add sourceSets.main, "elytra_aeronautics.refmap.json"
 }
 
-version = '1.19.2-1.0.2'
+version = '1.19.2-1.0.3'
 group = 'com.github.Soulphur0.elytra_aeronautics' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Elytra aeronautics Forge'
 
