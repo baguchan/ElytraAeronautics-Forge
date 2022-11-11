@@ -75,19 +75,21 @@ public class EanConfigFile {
 
         public final ForgeConfigSpec.ConfigValue<String> cloudType;
         public final ForgeConfigSpec.ConfigValue<String> renderMode;
+        public final ForgeConfigSpec.ConfigValue<Float> cloudRenderDistance;
         public final ForgeConfigSpec.ConfigValue<String> lodRenderMode;
+        public final ForgeConfigSpec.ConfigValue<Float> lodRenderDistance;
 
         public final ForgeConfigSpec.BooleanValue useSmoothLODs;
 
         public Client(ForgeConfigSpec.Builder builder) {
             layerAmount = builder
-                    .comment("layerAmount")
+                    .comment("This value determines the amount of cloud layers there are. Besides the vanilla clouds. To make new layers show up in the config, re-enter the menu without restarting. For changes to apply in-game however, restarting is necessary.")
                     .defineInRange("layerAmount", 2, 0, 10);
             layerDistance = builder
-                    .comment("layerDistance")
+                    .comment("\"When this value is changed, all cloud layers are relocated, and, starting from the altitude specified in the field below; they are placed on top of each other separated by this distance.")
                     .define("layerDistance", 250.0F);
             stackingAltitude = builder
-                    .comment("stackingAltitude")
+                    .comment("When the distance between clouds is modified, clouds will re-stacked on top of each other starting at the altitude specified in this field.")
                     .define("stackingAltitude", 192.0F);
             cloudType = builder
                     .comment("set cloudTypes[LOD, FANCY, FAST]")
@@ -99,11 +101,17 @@ public class EanConfigFile {
                     .define("renderMode", CloudRenderModes.ALWAYS_RENDER.name(), (name) -> {
                         return name != null && (name.equals(CloudRenderModes.TWO_IN_ADVANCE.name()) || name.equals(CloudRenderModes.ALWAYS_RENDER.name()) || name.equals(CloudRenderModes.ONE_IN_ADVANCE.name()));
                     });
+            cloudRenderDistance = builder
+                    .comment("cloudRenderDistance")
+                    .define("cloudRenderDistance", 0.0F);
             lodRenderMode = builder
                     .comment("set lodRenderMode [TWO_IN_ADVANCE, ALWAYS_RENDER, ONE_IN_ADVANCE]")
                     .define("lodRenderMode", CloudRenderModes.TWO_IN_ADVANCE.name(), (name) -> {
                         return name != null && (name.equals(CloudRenderModes.TWO_IN_ADVANCE.name()) || name.equals(CloudRenderModes.ALWAYS_RENDER.name()) || name.equals(CloudRenderModes.ONE_IN_ADVANCE.name()));
                     });
+            lodRenderDistance = builder
+                    .comment("lodRenderDistance")
+                    .define("lodRenderDistance", 0.0F);
             useSmoothLODs = builder
                     .comment("useSmoothLODs")
                     .define("useSmoothLODs", false);
@@ -186,16 +194,21 @@ public class EanConfigFile {
     public static void defaultPreset(ModConfigEvent.Loading event) {
         EanConfigFile.getCloudLayerList().clear();
 
+        float lastLayerAltitude = getStackingAltitude();
+
+
         if (EanConfigFile.getLayerAmount() > 0) {
             for (int i = 0; i < EanConfigFile.getLayerAmount(); i++) {
-                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getStackingAltitude() + EanConfigFile.getLayerDistance() * i, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
+                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getLayerDistance() * (i + 1) + lastLayerAltitude, getCloudType(), getRenderMode(), 0.0F, getLodRenderMode(), 0.0F, false));
             }
         }
 
         for (CloudLayer layer : getCloudLayerList()) {
             layer.setCloudType(getCloudType());
             layer.setRenderMode(getRenderMode());
+            layer.setCloudRenderDistance(CLIENT.cloudRenderDistance.get());
             layer.setLodRenderMode(getLodRenderMode());
+            layer.setLodRenderDistance(CLIENT.lodRenderDistance.get());
         }
     }
 
@@ -204,16 +217,21 @@ public class EanConfigFile {
     public static void defaultPreset(ModConfigEvent.Reloading event) {
         EanConfigFile.getCloudLayerList().clear();
 
+        float lastLayerAltitude = getStackingAltitude();
+
+
         if (EanConfigFile.getLayerAmount() > 0) {
             for (int i = 0; i < EanConfigFile.getLayerAmount(); i++) {
-                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getStackingAltitude() + EanConfigFile.getLayerDistance() * i, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
+                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getLayerDistance() * (i + 1) + lastLayerAltitude, getCloudType(), getRenderMode(), 0.0F, getLodRenderMode(), 0.0F, false));
             }
         }
 
         for (CloudLayer layer : getCloudLayerList()) {
             layer.setCloudType(getCloudType());
             layer.setRenderMode(getRenderMode());
+            layer.setCloudRenderDistance(CLIENT.cloudRenderDistance.get());
             layer.setLodRenderMode(getLodRenderMode());
+            layer.setLodRenderDistance(CLIENT.lodRenderDistance.get());
         }
     }
 
