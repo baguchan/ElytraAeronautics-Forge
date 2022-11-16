@@ -190,8 +190,7 @@ public class EanConfigFile {
 
     // ? Preset setup method
 
-    @SubscribeEvent
-    public static void defaultPreset(ModConfigEvent.Loading event) {
+    public static void defaultPreset() {
         EanConfigFile.getCloudLayerList().clear();
 
         float lastLayerAltitude = getStackingAltitude();
@@ -214,7 +213,7 @@ public class EanConfigFile {
 
 
     @SubscribeEvent
-    public static void defaultPreset(ModConfigEvent.Reloading event) {
+    public static void reloadPreset(ModConfigEvent.Reloading event) {
         EanConfigFile.getCloudLayerList().clear();
 
         float lastLayerAltitude = getStackingAltitude();

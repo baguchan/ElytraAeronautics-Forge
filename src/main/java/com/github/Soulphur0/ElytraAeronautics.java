@@ -30,6 +30,7 @@ public class ElytraAeronautics {
 
 	private void setup(FMLCommonSetupEvent event) {
 		LOGGER.info("Elytra Aeronautics initialized! Have a good flight!");
+		EanConfigFile.defaultPreset();
 	}
 
 }
