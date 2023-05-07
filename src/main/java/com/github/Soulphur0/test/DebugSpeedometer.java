@@ -1,5 +1,6 @@
 package com.github.Soulphur0.test;
 
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -23,8 +24,10 @@ public class DebugSpeedometer {
         lastPos = pos;
         // Send speed info.
         if (world.isClientSide()) {
-            List<? extends Player> players = world.players();
-            players.forEach(player -> player.displayClientMessage(Component.translatable(message), true));
+            if (world.getServer() != null) {
+                List<? extends Player> players = world.getServer().getPlayerList().getPlayers();
+                players.forEach(player -> player.displayClientMessage(Component.translatable(message), true));
+            }
         }
     }
 

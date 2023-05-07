@@ -1,237 +1,205 @@
 package com.github.Soulphur0.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import org.apache.commons.compress.utils.Lists;
-import org.apache.commons.lang3.tuple.Pair;
-
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = "elytra_aeronautics", bus = Mod.EventBusSubscriber.Bus.MOD)
-public class EanConfigFile {
-    public static final Client CLIENT;
-    public static final ForgeConfigSpec CLIENT_SPEC;
-    public static final Common COMMON;
-    public static final ForgeConfigSpec COMMON_SPEC;
+public class EanConfigFile implements Serializable {
+    // Elytra flight
+    boolean altitudeDeterminesSpeed;
+    private double minSpeed;
+    private double maxSpeed;
 
-    static {
-        Pair<Client, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Client::new);
-        CLIENT_SPEC = specPair.getRight();
-        CLIENT = specPair.getLeft();
-        Pair<Common, ForgeConfigSpec> specPair2 = new ForgeConfigSpec.Builder().configure(Common::new);
-        COMMON_SPEC = specPair2.getRight();
-        COMMON = specPair2.getLeft();
-    }
+    private double curveStart;
+    private double curveEnd;
 
-    public static class Common {
-        public final ForgeConfigSpec.BooleanValue altitudeDeterminesSpeed;
-        public final ForgeConfigSpec.DoubleValue minSpeed;
-        public final ForgeConfigSpec.DoubleValue maxSpeed;
-        public final ForgeConfigSpec.DoubleValue curveStart;
-        public final ForgeConfigSpec.DoubleValue curveEnd;
-        public final ForgeConfigSpec.BooleanValue sneakRealignsPitch;
+    boolean sneakRealignsPitch;
+    float realignmentAngle;
+    float realignmentRate;
 
-        public final ForgeConfigSpec.ConfigValue<Float> realignmentAngle;
-        public final ForgeConfigSpec.ConfigValue<Float> realignmentRate;
+    // Cloud customization
+    private int layerAmount;
 
+    private float layerDistance;
+    private float stackingAltitude;
 
-        public Common(ForgeConfigSpec.Builder builder) {
-            altitudeDeterminesSpeed = builder
-                    .comment("altitudeDeterminesSpeed")
-                    .define("altitudeDeterminesSpeed", true);
-            minSpeed = builder
-                    .comment("minSpeed")
-                    .defineInRange("minSpeed", 30.35D, 0D, 1000D);
-            maxSpeed = builder
-                    .comment("maxSpeed")
-                    .defineInRange("maxSpeed", 257.22D, 0D, 1000D);
-            curveStart = builder
-                    .comment("carveStart")
-                    .defineInRange("carveStart", 250.0D, 0D, 10000D);
-            curveEnd = builder
-                    .comment("carveEnd")
-                    .defineInRange("carveEnd", 1000.22D, 0D, 10000D);
-            sneakRealignsPitch = builder
-                    .comment("sneakRealignsPitch")
-                    .define("sneakRealignsPitch", true);
-            realignmentAngle = builder
-                    .comment("realignmentAngle")
-                    .define("realignmentAngle", 0.0F);
-            realignmentRate = builder
-                    .comment("realignmentRate")
-                    .define("realignmentRate", 0.1F);
-        }
-    }
+    CloudTypes cloudType;
+    CloudRenderModes renderMode;
+    CloudRenderModes lodRenderMode;
+    boolean useSmoothLODs;
 
-    public static class Client {
+    List<CloudLayer> cloudLayerList = new ArrayList<>();
 
-        public static final List<CloudLayer> defaultCloudList = Lists.newArrayList();
-        public final ForgeConfigSpec.IntValue layerAmount;
-
-        public final ForgeConfigSpec.ConfigValue<Float> layerDistance;
-        public final ForgeConfigSpec.ConfigValue<Float> stackingAltitude;
-
-        public final ForgeConfigSpec.ConfigValue<String> cloudType;
-        public final ForgeConfigSpec.ConfigValue<String> renderMode;
-        public final ForgeConfigSpec.ConfigValue<Float> cloudRenderDistance;
-        public final ForgeConfigSpec.ConfigValue<String> lodRenderMode;
-        public final ForgeConfigSpec.ConfigValue<Float> lodRenderDistance;
-
-        public final ForgeConfigSpec.BooleanValue useSmoothLODs;
-
-        public Client(ForgeConfigSpec.Builder builder) {
-            layerAmount = builder
-                    .comment("This value determines the amount of cloud layers there are. Besides the vanilla clouds. To make new layers show up in the config, re-enter the menu without restarting. For changes to apply in-game however, restarting is necessary.")
-                    .defineInRange("layerAmount", 2, 0, 10);
-            layerDistance = builder
-                    .comment("\"When this value is changed, all cloud layers are relocated, and, starting from the altitude specified in the field below; they are placed on top of each other separated by this distance.")
-                    .define("layerDistance", 250.0F);
-            stackingAltitude = builder
-                    .comment("When the distance between clouds is modified, clouds will re-stacked on top of each other starting at the altitude specified in this field.")
-                    .define("stackingAltitude", 192.0F);
-            cloudType = builder
-                    .comment("set cloudTypes[LOD, FANCY, FAST]")
-                    .define("cloudType", CloudTypes.LOD.name(), (name) -> {
-                        return name != null && (name.equals(CloudTypes.LOD.name()) || name.equals(CloudTypes.FANCY.name()) || name.equals(CloudTypes.FAST.name()));
-                    });
-            renderMode = builder
-                    .comment("set renderMode[TWO_IN_ADVANCE, ALWAYS_RENDER, ONE_IN_ADVANCE]")
-                    .define("renderMode", CloudRenderModes.ALWAYS_RENDER.name(), (name) -> {
-                        return name != null && (name.equals(CloudRenderModes.TWO_IN_ADVANCE.name()) || name.equals(CloudRenderModes.ALWAYS_RENDER.name()) || name.equals(CloudRenderModes.ONE_IN_ADVANCE.name()));
-                    });
-            cloudRenderDistance = builder
-                    .comment("cloudRenderDistance")
-                    .define("cloudRenderDistance", 0.0F);
-            lodRenderMode = builder
-                    .comment("set lodRenderMode [TWO_IN_ADVANCE, ALWAYS_RENDER, ONE_IN_ADVANCE]")
-                    .define("lodRenderMode", CloudRenderModes.TWO_IN_ADVANCE.name(), (name) -> {
-                        return name != null && (name.equals(CloudRenderModes.TWO_IN_ADVANCE.name()) || name.equals(CloudRenderModes.ALWAYS_RENDER.name()) || name.equals(CloudRenderModes.ONE_IN_ADVANCE.name()));
-                    });
-            lodRenderDistance = builder
-                    .comment("lodRenderDistance")
-                    .define("lodRenderDistance", 0.0F);
-            useSmoothLODs = builder
-                    .comment("useSmoothLODs")
-                    .define("useSmoothLODs", false);
-
-        }
-    }
-
-    private static boolean isValidCloudLayer(Object object) {
-        return true;
+    public EanConfigFile() {
+        defaultPreset();
     }
 
     // ? Getters and setters
-    public static int getLayerAmount() {
-        return CLIENT.layerAmount.get();
+    public int getLayerAmount() {
+        return layerAmount;
     }
 
-    public static List<CloudLayer> getCloudLayerList() {
-        return Client.defaultCloudList;
+    public List<CloudLayer> getCloudLayerList() {
+        return cloudLayerList;
     }
 
-    public static float getLayerDistance() {
-        return CLIENT.layerDistance.get();
+    public float getLayerDistance() {
+        return layerDistance;
     }
 
-    public static CloudTypes getCloudType() {
-        return CloudTypes.valueOf(CLIENT.cloudType.get());
+    public CloudTypes getCloudType() {
+        return cloudType;
     }
 
-    public static CloudRenderModes getRenderMode() {
-        return CloudRenderModes.valueOf(CLIENT.renderMode.get());
+    public CloudRenderModes getRenderMode() {
+        return renderMode;
     }
 
-    public static CloudRenderModes getLodRenderMode() {
-        return CloudRenderModes.valueOf(CLIENT.lodRenderMode.get());
+    public CloudRenderModes getLodRenderMode() {
+        return lodRenderMode;
     }
 
-    public static double getMinSpeed() {
-        return COMMON.minSpeed.get();
+    public double getMinSpeed() {
+        return minSpeed;
     }
 
-    public static double getMaxSpeed() {
-        return COMMON.maxSpeed.get();
+    public void setMinSpeed(double minSpeed) {
+        this.minSpeed = minSpeed;
     }
 
-    public static double getCurveStart() {
-        return COMMON.curveStart.get();
+    public double getMaxSpeed() {
+        return maxSpeed;
     }
 
-    public static double getCurveEnd() {
-        return COMMON.curveEnd.get();
+    public void setMaxSpeed(double maxSpeed) {
+        this.maxSpeed = maxSpeed;
     }
 
-    public static boolean isSneakRealignsPitch() {
-        return COMMON.sneakRealignsPitch.get();
+    public double getCurveStart() {
+        return curveStart;
     }
 
-    public static float getRealignmentRate() {
-        return COMMON.realignmentRate.get();
+    public void setCurveStart(double curveStart) {
+        this.curveStart = curveStart;
     }
 
-    public static float getRealignmentAngle() {
-        return COMMON.realignmentAngle.get();
+    public double getCurveEnd() {
+        return curveEnd;
     }
 
-    public static float getStackingAltitude() {
-        return CLIENT.stackingAltitude.get();
+    public void setCurveEnd(double curveEnd) {
+        this.curveEnd = curveEnd;
     }
 
-    public static boolean isUseSmoothLODs() {
-        return CLIENT.useSmoothLODs.get();
+    public boolean isSneakRealignsPitch() {
+        return sneakRealignsPitch;
     }
 
-    public static boolean isAltitudeDeterminesSpeed() {
-        return COMMON.altitudeDeterminesSpeed.get();
+    public void setSneakRealignsPitch(boolean sneakRealignsPitch) {
+        this.sneakRealignsPitch = sneakRealignsPitch;
+    }
+
+    public float getRealignmentRate() {
+        return realignmentRate;
+    }
+
+    public void setRealignmentRate(float realignmentRate) {
+        this.realignmentRate = realignmentRate;
+    }
+
+    public float getRealignmentAngle() {
+        return realignmentAngle;
+    }
+
+    public void setRealignmentAngle(float realignmentAngle) {
+        this.realignmentAngle = realignmentAngle;
+    }
+
+    public float getStackingAltitude() {
+        return stackingAltitude;
+    }
+
+    public void setStackingAltitude(float stackingAltitude) {
+        this.stackingAltitude = stackingAltitude;
+    }
+
+    public void setLayerAmount(int layerAmount) {
+        this.layerAmount = layerAmount;
+    }
+
+    public void setLayerDistance(float distance) {
+        this.layerDistance = distance;
+    }
+
+    public boolean isUseSmoothLODs() {
+        return useSmoothLODs;
+    }
+
+    public void setUseSmoothLODs(boolean useSmoothLODs) {
+        this.useSmoothLODs = useSmoothLODs;
+    }
+
+    public boolean isAltitudeDeterminesSpeed() {
+        return altitudeDeterminesSpeed;
+    }
+
+    public void setAltitudeDeterminesSpeed(boolean altitudeDeterminesSpeed) {
+        this.altitudeDeterminesSpeed = altitudeDeterminesSpeed;
+    }
+
+    // ? General configuration methods (Setters with extra behaviour)
+    public void setCloudType(CloudTypes cloudType) {
+        this.cloudType = cloudType;
+
+        for (CloudLayer layer : cloudLayerList) {
+            layer.setCloudType(cloudType);
+        }
+    }
+
+    public void setRenderMode(CloudRenderModes renderMode) {
+        this.renderMode = renderMode;
+        for (CloudLayer layer : cloudLayerList) {
+            layer.setRenderMode(renderMode);
+        }
+    }
+
+    public void setLodRenderMode(CloudRenderModes renderMode) {
+        this.lodRenderMode = renderMode;
+        for (CloudLayer layer : cloudLayerList) {
+            layer.setLodRenderMode(renderMode);
+        }
     }
 
     // ? Preset setup method
 
-    public static void defaultPreset() {
-        EanConfigFile.getCloudLayerList().clear();
+    public void defaultPreset() {
+        // Elytra flight configuration
+        altitudeDeterminesSpeed = true;
+        minSpeed = 30.35D;
+        maxSpeed = 257.22D;
+        curveStart = 250.0D;
+        curveEnd = 1000.0D;
 
-        float lastLayerAltitude = getStackingAltitude();
+        sneakRealignsPitch = true;
+        realignmentAngle = 0.0F;
+        realignmentRate = 0.1F;
 
+        // Cloud configuration
+        layerAmount = 2;
+        layerDistance = 250.0F;
+        stackingAltitude = 192.0F;
+        cloudType = CloudTypes.LOD;
+        renderMode = CloudRenderModes.ALWAYS_RENDER;
+        lodRenderMode = CloudRenderModes.TWO_IN_ADVANCE;
+        useSmoothLODs = false;
 
-        if (EanConfigFile.getLayerAmount() > 0) {
-            for (int i = 0; i < EanConfigFile.getLayerAmount(); i++) {
-                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getLayerDistance() * (i + 1) + lastLayerAltitude, getCloudType(), getRenderMode(), 0.0F, getLodRenderMode(), 0.0F, false));
-            }
-        }
-
-        for (CloudLayer layer : getCloudLayerList()) {
-            layer.setCloudType(getCloudType());
-            layer.setRenderMode(getRenderMode());
-            layer.setCloudRenderDistance(CLIENT.cloudRenderDistance.get());
-            layer.setLodRenderMode(getLodRenderMode());
-            layer.setLodRenderDistance(CLIENT.lodRenderDistance.get());
-        }
+        cloudLayerList = new ArrayList<>();
+        cloudLayerList.add(new CloudLayer(250.0F, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
+        cloudLayerList.add(new CloudLayer(1000.0F, CloudTypes.LOD, CloudRenderModes.ALWAYS_RENDER, 0.0F, CloudRenderModes.ONE_IN_ADVANCE, 0.0F, false));
     }
 
-
-    @SubscribeEvent
-    public static void reloadPreset(ModConfigEvent.Reloading event) {
-        EanConfigFile.getCloudLayerList().clear();
-
-        float lastLayerAltitude = getStackingAltitude();
-
-
-        if (EanConfigFile.getLayerAmount() > 0) {
-            for (int i = 0; i < EanConfigFile.getLayerAmount(); i++) {
-                Client.defaultCloudList.add(new CloudLayer(EanConfigFile.getLayerDistance() * (i + 1) + lastLayerAltitude, getCloudType(), getRenderMode(), 0.0F, getLodRenderMode(), 0.0F, false));
-            }
-        }
-
-        for (CloudLayer layer : getCloudLayerList()) {
-            layer.setCloudType(getCloudType());
-            layer.setRenderMode(getRenderMode());
-            layer.setCloudRenderDistance(CLIENT.cloudRenderDistance.get());
-            layer.setLodRenderMode(getLodRenderMode());
-            layer.setLodRenderDistance(CLIENT.lodRenderDistance.get());
-        }
+    // ? Initialize method
+    public static void initializeConfigFile() {
+        ConfigFileWriter.createConfigFile(new EanConfigFile());
     }
-
 }

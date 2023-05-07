@@ -1,19 +1,11 @@
 package com.github.Soulphur0.mixin;
 
-import com.github.Soulphur0.config.CloudLayer;
-import com.github.Soulphur0.config.CloudRenderModes;
-import com.github.Soulphur0.config.CloudTypes;
-import com.github.Soulphur0.config.EanConfigFile;
+import com.github.Soulphur0.ElytraAeronautics;
+import com.github.Soulphur0.config.*;
 import com.github.Soulphur0.utility.EanMath;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexBuffer;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.math.Matrix4f;
+import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -26,6 +18,7 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -142,8 +135,8 @@ public abstract class LevelRendererMixin implements ResourceManagerReloadListene
                         RenderSystem.colorMask(true, true, true, true);
                     }
 
-                    ShaderInstance shader = RenderSystem.getShader();
-                    this.cloudBuffer.drawWithShader(matrices.last().pose(), projectionMatrix, shader);
+                    ShaderInstance shaderProgram = RenderSystem.getShader();
+                    this.cloudBuffer.drawWithShader(matrices.last().pose(), projectionMatrix, shaderProgram);
                 }
 
                 VertexBuffer.unbind();
@@ -161,7 +154,11 @@ public abstract class LevelRendererMixin implements ResourceManagerReloadListene
 
     private BufferBuilder.RenderedBuffer eanCustomCloudRenderSetup(BufferBuilder builder, double x, double renderCloudsY, double z, Vec3 color) {
         // ? Get cloud layers from config file (once per save action)
-        cloudLayers = EanConfigFile.getCloudLayerList();
+        if (ElytraAeronautics.readConfigFileCue_WorldRendererMixin) {
+            configFile = ConfigFileReader.getConfigFile();
+            cloudLayers = configFile.getCloudLayerList();
+            ElytraAeronautics.readConfigFileCue_WorldRendererMixin = false;
+        }
 
         // ? Return buffer with all cloud layers drawn as the config specifies.
         return renderCloudsPrivateOverwrite(cloudLayers, builder, x, renderCloudsY, z, color);
@@ -289,7 +286,7 @@ public abstract class LevelRendererMixin implements ResourceManagerReloadListene
 
             // _ Render layers
             // * RENDER FANCY clouds either if (fancy clouds are enabled and withing render range) or (within high LOD altitude range and maximum LOD render distance).
-            if (cloudType.equals(CloudTypes.FANCY) && withinRenderDistance || cloudType.equals(CloudTypes.LOD) && withinHighLODDistance){
+            if (cloudType.equals(CloudTypes.FANCY) && withinRenderDistance || cloudType.equals(CloudTypes.LOD) && withinHighLODDistance) {
                 for (int ac = Mth.floor(-0.125 * horizontalDisplacement - 3); ac <= Mth.floor(-0.125 * horizontalDisplacement + 4); ++ac) {
                     for (int ad = -3; ad <= 4; ++ad) {
                         float ae = (float) (ac * 8);
