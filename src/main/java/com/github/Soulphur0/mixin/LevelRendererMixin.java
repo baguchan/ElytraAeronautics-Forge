@@ -70,8 +70,11 @@ public abstract class LevelRendererMixin implements ResourceManagerReloadListene
     @Shadow
     private VertexBuffer cloudBuffer;
 
-    @Inject(method = "renderClouds", at = @At(value = "HEAD"))
+    @Inject(method = "renderClouds", at = @At(value = "HEAD"), cancellable = true)
     private void renderCloudsPublicOverwrite(PoseStack matrices, Matrix4f projectionMatrix, float tickDelta, double d, double e, double f, CallbackInfo ci) {
+        if (level.effects().renderClouds(level, ticks, tickDelta, matrices, d, e, f, projectionMatrix)) {
+            ci.cancel();
+        }
         float g = this.level.effects().getCloudHeight();
         if (!Float.isNaN(g)) {
             RenderSystem.disableCull();
