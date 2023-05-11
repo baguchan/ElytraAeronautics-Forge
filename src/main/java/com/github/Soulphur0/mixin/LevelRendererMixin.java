@@ -150,6 +150,7 @@ public abstract class LevelRendererMixin implements ResourceManagerReloadListene
             RenderSystem.enableCull();
             RenderSystem.disableBlend();
         }
+        ci.cancel();
     }
 
     EanConfigFile configFile;
