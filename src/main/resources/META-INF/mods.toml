@@ -69,5 +69,5 @@ modId = "cloth_config"
 mandatory = true
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
 versionRange = "[10.0.96,)"
-ordering = "NONE"
+ordering = "AFTER"
 side = "BOTH"
